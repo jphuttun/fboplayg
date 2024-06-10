@@ -102,6 +102,276 @@ using System.ComponentModel;
         }          
 
         /// <summary>
+        /// ExecuteBlock tekee sen mitä kukin blokki tekee ja toteuttaa kyseisen blokin toiminnan
+        /// </summary>
+        /// <param name="kutsuja"> string, kutsujan polku, joka kutsuu tätä kyseistä funktiota </param>
+        /// <param name="motherconnrect"> MotherConnectionRectangle, se pääblokin luokan instanssin referenssi, jonka kautta saamme käytyä noutamassa tiedot siitä, mitä blokille on luotu</param>
+        /// <param name="oneslot"> OneSlot, sen slotin referenssi, josta tietoja "saatetaan" hakea. Kyseisen slotin kautta on myös ObjectIndexerillä mahdollista päästä käsiksi koko ohjelman perusparametreihin. Tämä voidaan antaa myös null tietona, jos kyseessä on käyttäjän itsensä antama arvo, jolloin OneSlot objektin referenssiä ei tarvita </param>
+        /// <returns>{int} palauttaa BlockAtomValue:n tyypin enum:in, jos onnistui asettamaan kohteen tälle blokille Result tiedoksi. Jos tulee virhe, niin palauttaa arvon, joka on < 0.</returns>
+        public override int ExecuteBlock(string kutsuja, MotherConnectionRectangle motherconnrect, OneSlot oneslot = null)
+        {
+            string functionName = "->(OperationBlock)ExecuteBlock";
+            int result = -1;
+
+            try
+            {
+                // Hae vihreä kahva
+                SortedList<long, BlockHandle> greenHandles = this.GetBlockHandlesByIterationClass(kutsuja + functionName, (int)ConnectionRectangles.connectionBoxType.GREEN_BOX_CHECK_VALUE_2);
+                if (greenHandles.Count != 1)
+                {
+                    this.proghmi.sendError(kutsuja + functionName, "Invalid number of green handles.", -1364, 4, 4);
+                    return -40;
+                }
+
+                // Hae keltaiset kahvat
+                SortedList<long, BlockHandle> yellowHandles = GetBlockHandlesByIterationClass(kutsuja + functionName, (int)ConnectionRectangles.connectionBoxType.YELLOW_BOX_COMPARE_VALUE_1);
+                if (yellowHandles.Count == 0)
+                {
+                    this.proghmi.sendError(kutsuja + functionName, "No yellow handles found.", -1365, 4, 4);
+                    return -41;
+                }
+
+                // Hae arvot kahvoista
+                BlockHandle greenHandle = greenHandles.Values.First();
+                BlockAtomValue valueA = greenHandle.BlockAtomValue;
+                List<BlockAtomValue> valuesB = yellowHandles.Values.Select(h => h.BlockAtomValue).ToList();
+
+                // Tarkista atomityypit
+                if (valuesB.Any(v => v.AtomType != valueA.AtomType))
+                {
+                    this.proghmi.sendError(kutsuja + functionName, "Atom types do not match.", -1366, 4, 4);
+                    return -42;
+                }
+
+                // Hae operaattori
+                string selectedHandleString = motherconnrect.SelectedHandle;
+                int operationType = this.SwitchSelectedHandleStringToEnumInt(kutsuja + functionName, selectedHandleString);
+
+                // Suorita toiminto atomityypin mukaan
+                switch (valueA.AtomType)
+                {
+                    case (int)BlockAtomValue.AtomTypeEnum.Int:
+                        this.BlockResultValue.IntAtom = PerformIntOperation(kutsuja + functionName, valueA.IntAtom, valuesB.Select(v => v.IntAtom).ToList(), operationType);
+                        result=(int)BlockAtomValue.Int;
+                        break;
+                    case (int)BlockAtomValue.AtomTypeEnum.Long:
+                        this.BlockResultValue.LongAtom = PerformLongOperation(kutsuja + functionName, valueA.LongAtom, valuesB.Select(v => v.LongAtom).ToList(), operationType);
+                        result=(int)BlockAtomValue.Long;
+                        break;
+                    case (int)BlockAtomValue.AtomTypeEnum.Decimal:
+                        this.BlockResultValue.DecAtom = PerformDecimalOperation(kutsuja + functionName, valueA.DecAtom, valuesB.Select(v => v.DecAtom).ToList(), operationType);
+                        result=(int)BlockAtomValue.Dec;
+                        break;
+                    case (int)BlockAtomValue.AtomTypeEnum.String:
+                        this.BlockResultValue.StringAtom = PerformStringOperation(kutsuja + functionName, valueA.StringAtom, valuesB.Select(v => v.StringAtom).ToList(), operationType);
+                        result=(int)BlockAtomValue.String;
+                        break;
+                    case (int)BlockAtomValue.AtomTypeEnum.Bool:
+                        this.BlockResultValue.BoolAtom = PerformBoolOperation(kutsuja + functionName, valueA.BoolAtom, valuesB.Select(v => v.BoolAtom).ToList(), operationType);
+                        result=(int)BlockAtomValue.Bool;
+                        break;
+                    default:
+                        result=(int)BlockAtomValue.Not_defined_yet;
+                        this.proghmi.sendError(kutsuja + functionName, "Unsupported AtomType. AtomType:"+valueA.AtomType, -1367, 4, 4);
+                        return -43;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                this.proghmi.sendError(kutsuja + functionName, ex.Message, -1368, 4, 4);
+                return -44;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Suorittaa matemaattisen operaation kokonaisluvuille (int).
+        /// </summary>
+        /// <param name="caller">string, kutsujan polku, joka kutsuu tätä funktiota.</param>
+        /// <param name="valueA">int, ensimmäinen arvo operaatiossa.</param>
+        /// <param "valuesB">List&lt;int&gt;, lista muista arvoista operaatiossa.</param>
+        /// <param name="operationType">int, operaation tyyppi SelectedHandleEnum mukaan.</param>
+        /// <returns>Palauttaa operaation tuloksen int-muodossa.</returns>
+        private int PerformIntOperation(string caller, int valueA, List<int> valuesB, int operationType)
+        {
+            string functionname="->(OB)PerformIntOperation";
+            int result = valueA;
+            foreach (int valueB in valuesB)
+            {
+                switch (operationType)
+                {
+                    case (int)this.SelectedHandleEnum.PLUS_10:
+                        result += valueB;
+                        break;
+                    case (int)SelectedHandleEnum.MINUS_11:
+                        result -= valueB;
+                        break;
+                    case (int)SelectedHandleEnum.MULTIPLIER_12:
+                        result *= valueB;
+                        break;
+                    case SelectedHandleEnum.DIVIDER_13:
+                        if (valueB == 0)
+                        {
+                            this.proghmi.sendError(caller+functionname, "Division by zero.", -1369, 4, 4);
+                            throw new InvalidOperationException("Division by zero! (PerformIntOperation)");
+                            return 0;
+                        }
+                        result /= valueB;
+                        break;
+                    default:
+                        this.proghmi.sendError(caller+functionname, "Invalid operation type for int operation: " + operationType, -1370, 4, 4);
+                        throw new InvalidOperationException("Invalid operation type for int operation: " + operationType);
+                }
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Suorittaa matemaattisen operaation pitkille arvoille (long).
+        /// </summary>
+        /// <param name="caller">string, kutsujan polku, joka kutsuu tätä funktiota.</param>
+        /// <param name="valueA">long, ensimmäinen arvo operaatiossa.</param>
+        /// <param name="valuesB">List&lt;long&gt;, lista muista arvoista operaatiossa.</param>
+        /// <param name="operationType">int, operaation tyyppi SelectedHandleEnum mukaan.</param>
+        /// <returns>Palauttaa operaation tuloksen long-muodossa.</returns>
+        private long PerformLongOperation(string caller, long valueA, List<long> valuesB, int operationType)
+        {
+            string functionName = "->(OB)PerformLongOperation";
+            long result = valueA;
+
+            foreach (long valueB in valuesB)
+            {
+                switch (operationType)
+                {
+                    case (int)SelectedHandleEnum.PLUS_10:
+                        result += valueB;
+                        break;
+                    case (int)SelectedHandleEnum.MINUS_11:
+                        result -= valueB;
+                        break;
+                    case (int)SelectedHandleEnum.MULTIPLIER_12:
+                        result *= valueB;
+                        break;
+                    case (int)SelectedHandleEnum.DIVIDER_13:
+                        if (valueB == 0)
+                        {
+                            this.proghmi.sendError(caller + functionName, "Division by zero.", -1374, 4, 4);
+                            throw new InvalidOperationException("Division by zero! (PerformLongOperation)");
+                        }
+                        result /= valueB;
+                        break;
+                    default:
+                        this.proghmi.sendError(caller + functionName, "Invalid operation type for long operation: " + operationType, -1375, 4, 4);
+                        throw new InvalidOperationException("Invalid operation type for long operation: " + operationType);
+                }
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Suorittaa matemaattisen operaation desimaaliluvuille (decimal).
+        /// </summary>
+        /// <param name="caller">string, kutsujan polku, joka kutsuu tätä funktiota.</param>
+        /// <param name="valueA">decimal, ensimmäinen arvo operaatiossa.</param>
+        /// <param name="valuesB">List&lt;decimal&gt;, lista muista arvoista operaatiossa.</param>
+        /// <param name="operationType">int, operaation tyyppi SelectedHandleEnum mukaan.</param>
+        /// <returns>Palauttaa operaation tuloksen decimal-muodossa.</returns>
+        private decimal PerformDecimalOperation(string caller, decimal valueA, List<decimal> valuesB, int operationType)
+        {
+            string functionName = "->(OB)PerformDecimalOperation";
+            decimal result = valueA;
+
+            foreach (decimal valueB in valuesB)
+            {
+                switch (operationType)
+                {
+                    case (int)SelectedHandleEnum.PLUS_10:
+                        result += valueB;
+                        break;
+                    case (int)SelectedHandleEnum.MINUS_11:
+                        result -= valueB;
+                        break;
+                    case (int)SelectedHandleEnum.MULTIPLIER_12:
+                        result *= valueB;
+                        break;
+                    case (int)SelectedHandleEnum.DIVIDER_13:
+                        if (valueB == 0)
+                        {
+                            this.proghmi.sendError(caller + functionName, "Division by zero.", -1376, 4, 4);
+                            throw new InvalidOperationException("Division by zero! (PerformDecimalOperation)");
+                        }
+                        result /= valueB;
+                        break;
+                    default:
+                        this.proghmi.sendError(caller + functionName, "Invalid operation type for decimal operation: " + operationType, -1377, 4, 4);
+                        throw new InvalidOperationException("Invalid operation type for decimal operation: " + operationType);
+                }
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Suorittaa matemaattisen operaation merkkijonoille (string).
+        /// </summary>
+        /// <param name="caller">string, kutsujan polku, joka kutsuu tätä funktiota.</param>
+        /// <param name="valueA">string, ensimmäinen arvo operaatiossa.</param>
+        /// <param name="valuesB">List&lt;string&gt;, lista muista arvoista operaatiossa.</param>
+        /// <param name="operationType">int, operaation tyyppi SelectedHandleEnum mukaan.</param>
+        /// <returns>Palauttaa 1, jos operaatio onnistui.</returns>
+        private string PerformStringOperation(string caller, string valueA, List<string> valuesB, int operationType)
+        {
+            string functionName = "->(OB)PerformStringOperation";
+            string result = valueA;
+
+            foreach (string valueB in valuesB)
+            {
+                if (operationType == (int)SelectedHandleEnum.PLUS_10)
+                {
+                    result += valueB;
+                }
+                else
+                {
+                    this.proghmi.sendError(caller + functionName, "Invalid operation type for string operation: " + operationType, -1378, 4, 4);
+                    throw new InvalidOperationException("Invalid operation type for string operation: " + operationType);
+                }
+            }
+            this.BlockAtomResult.StringResult = result;
+            return result;
+        }
+
+
+        /// <summary>
+        /// Suorittaa matemaattisen operaation totuusarvoille (bool).
+        /// </summary>
+        /// <param name="caller">string, kutsujan polku, joka kutsuu tätä funktiota.</param>
+        /// <param name="valueA">bool, ensimmäinen arvo operaatiossa.</param>
+        /// <param name="valuesB">List&lt;bool&gt;, lista muista arvoista operaatiossa.</param>
+        /// <param name="operationType">int, operaation tyyppi SelectedHandleEnum mukaan.</param>
+        /// <returns>Palauttaa true, jos operaatio onnistui ja tulos on true; false, jos tulos on false.</returns>
+        private bool PerformBoolOperation(string caller, bool valueA, List<bool> valuesB, int operationType)
+        {
+            string functionName = "->(OB)PerformBoolOperation";
+            int result = valueA ? 1 : 0;
+
+            foreach (bool valueB in valuesB)
+            {
+                if (operationType == (int)SelectedHandleEnum.MULTIPLIER_12)
+                {
+                    result *= (valueB ? 1 : 0);
+                }
+                else
+                {
+                    this.proghmi.sendError(caller + functionName, "Invalid operation type for bool operation: " + operationType, -1379, 4, 4);
+                    throw new InvalidOperationException("Invalid operation type for bool operation: " + operationType);
+                }
+            }
+            this.BlockAtomResult.BoolResult = (result == 1);
+            return (result == 1);
+        }
+
+        /// <summary>
         /// Tämä enumeraatio määrittää kuinka monen erillisen muuttujan matemaattinen blokki on kyseessä
         /// </summary>
         public enum OperationBlockTypeEnum {

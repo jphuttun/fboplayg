@@ -384,6 +384,46 @@ using System.ComponentModel;
         public abstract int ExecuteBlock(string kutsuja, MotherConnectionRectangle motherconnrect, OneSlot oneslot=null);
 
         /// <summary>
+        /// Palauttaa SortedList &lt; long, BlockHandle &gt; -muotoisen listan, jossa on BlockHandle instanssien referenssejä.
+        /// </summary>
+        /// <param name="kutsuja">string, kutsujan polku, joka kutsuu tätä funktiota.</param>
+        /// <param name="iterationclass">int, iterationclass-arvo, jonka mukaan BlockHandle-instanssit suodatetaan.</param>
+        /// <returns>{SortedList &lt; long, BlockHandle &gt; }, joka sisältää suodatetut BlockHandle-instanssit.</returns>
+        protected SortedList<long, BlockHandle> GetBlockHandlesByIterationClass(string kutsuja, int iterationclass)
+        {
+            SortedList<long, BlockHandle> blockHandles = new SortedList<long, BlockHandle>();
+            string functionName = "->(OB)GetBlockHandlesByIterationClass";
+            
+            try
+            {
+                long handleUID = this.ReturnBlockHandlesRef.ReturnBlockHandleUIDFirst(kutsuja + functionName, iterationclass);
+                while (handleUID >= 0)
+                {
+                    BlockHandle handle = this.ReturnBlockHandlesRef.ReturnBlockHandleByUID(kutsuja + functionName, handleUID, true);
+                    if (handle.IterationClass == iterationclass)
+                    {
+                        blockHandles.Add(handleUID, handle);
+                    }
+                    else
+                    {
+                        this.proghmi.sendError(kutsuja + functionName, "Handle iteration class mismatch.", -1371, 4, 4);
+                    }
+                    handleUID = this.ReturnBlockHandlesRef.ReturnBlockHandleUIDNext(kutsuja + functionName, iterationclass);
+                    if (handleUID < -2)
+                    {
+                        this.proghmi.sendError(kutsuja + functionName, "Invalid handle UID. Response:"+handleUID, -1372, 4, 4);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                this.proghmi.sendError(kutsuja + functionName, ex.Message, -1373, 4, 4);
+            }
+
+            return blockHandles;
+        }
+
+        /// <summary>
         /// Lähettää tulokset eteenpäin jokaiselle "result" pään Connection instansseille.
         /// </summary>
         /// <param name="kutsuja">Kutsujan polku, joka kutsuu tätä funktiota.</param>

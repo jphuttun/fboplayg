@@ -1175,9 +1175,9 @@ using System.ComponentModel;
         /// </returns>
         public long ReturnBlockHandleUIDFirst(string kutsuja, int iterationclasstoseek)
         {
-            this.lastiterationclassindexnum=0;
             string functionname="->(BHS)ReturnBlockHandleUIDFirst";
             long retVal=-20;
+            this.lastiterationclassindexnum=0;
             if (this.classini.IsClassInitialized==true) {
                 retVal=this.ReturnBlockHandleUIDByClassIndex(kutsuja+functionname,iterationclasstoseek,this.lastiterationclassindexnum,false);                
             } else {
@@ -1197,10 +1197,10 @@ using System.ComponentModel;
         /// </returns>
         public long ReturnBlockHandleUIDNext(string kutsuja, int iterationclasstoseek)
         {
-            this.lastiterationclassindexnum++;
             string functionname="->(BHS)ReturnBlockHandleUIDFirst";
             long retVal=-30;
             if (this.classini.IsClassInitialized==true) {
+                this.lastiterationclassindexnum++;
                 retVal=this.ReturnBlockHandleUIDByClassIndex(kutsuja+functionname,iterationclasstoseek,this.lastiterationclassindexnum,true);                
             } else {
                 this.proghmi.sendError(kutsuja + functionname, "Class not initialized! Response:" + this.classini.ClassOkayNumber, -1350, 4, 4);
