@@ -41,7 +41,16 @@ using System.ComponentModel;
         /// <summary>
         /// Tämä luokan instanssi luo kahvojen BlockAtomValuet ja pitää ne järjestyksessä ja tällä käskyllä palautetaan kyseisen luokan referenssi
         /// </summary>
-        public BlockHandles ReturnBlockHandlesRef { get; }                 
+        public BlockHandles ReturnBlockHandlesRef { get; }
+
+        /// <summary>
+        /// ExecuteBlock tekee sen mitä kukin blokki tekee ja toteuttaa kyseisen blokin toiminnan
+        /// </summary>
+        /// <param name="kutsuja"> string, kutsujan polku, joka kutsuu tätä kyseistä funktiota </param>
+        /// <param name="motherconnrect"> MotherConnectionRectangle, se pääblokin luokan instanssin referenssi, jonka kautta saamme käytyä noutamassa tiedot siitä, mitä blokille on luotu</param>
+        /// <param name="oneslot"> OneSlot, sen slotin referenssi, josta tietoja "saatetaan" hakea. Kyseisen slotin kautta on myös ObjectIndexerillä mahdollista päästä käsiksi koko ohjelman perusparametreihin. Tämä voidaan antaa myös null tietona, jos kyseessä on käyttäjän itsensä antama arvo, jolloin OneSlot objektin referenssiä ei tarvita </param>
+        /// <returns>{int} palauttaa BlockAtomValue:n tyypin enum:in, jos onnistui asettamaan kohteen tälle blokille Result tiedoksi. Jos tulee virhe, niin palauttaa arvon, joka on &lt; 0.</returns>
+        public int ExecuteBlock(string kutsuja, MotherConnectionRectangle motherconnrect, OneSlot oneslot=null);                       
     }
 
     /// <summary>
@@ -372,7 +381,7 @@ using System.ComponentModel;
         /// <param name="motherconnrect"> MotherConnectionRectangle, se pääblokin luokan instanssin referenssi, jonka kautta saamme käytyä noutamassa tiedot siitä, mitä blokille on luotu</param>
         /// <param name="oneslot"> OneSlot, sen slotin referenssi, josta tietoja "saatetaan" hakea. Kyseisen slotin kautta on myös ObjectIndexerillä mahdollista päästä käsiksi koko ohjelman perusparametreihin. Tämä voidaan antaa myös null tietona, jos kyseessä on käyttäjän itsensä antama arvo, jolloin OneSlot objektin referenssiä ei tarvita </param>
         /// <returns>{int} palauttaa BlockAtomValue:n tyypin enum:in, jos onnistui asettamaan kohteen tälle blokille Result tiedoksi. Jos tulee virhe, niin palauttaa arvon, joka on &lt; 0.</returns>
-        public abstract int ExecuteBlock(string kutsuja, MotherConnectionRectangle motherconnrect, OneSlot oneslot);
+        public abstract int ExecuteBlock(string kutsuja, MotherConnectionRectangle motherconnrect, OneSlot oneslot=null);
 
         /// <summary>
         /// Lähettää tulokset eteenpäin jokaiselle "result" pään Connection instansseille.
