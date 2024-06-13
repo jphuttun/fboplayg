@@ -317,7 +317,7 @@ using System.ComponentModel;
         /// </summary>
         /// <param name="caller">string, kutsujan polku, joka kutsuu tätä funktiota.</param>
         /// <param name="valueA">string, ensimmäinen arvo operaatiossa.</param>
-        /// <param name="valuesB">List&lt;string&gt;, lista muista arvoista operaatiossa.</param>
+        /// <param name="valuesB">List &lt; string &gt; , lista muista arvoista operaatiossa.</param>
         /// <param name="operationType">int, operaation tyyppi SelectedHandleEnum mukaan.</param>
         /// <returns>Palauttaa 1, jos operaatio onnistui.</returns>
         private string PerformStringOperation(string caller, string valueA, List<string> valuesB, int operationType)
@@ -337,7 +337,6 @@ using System.ComponentModel;
                     throw new InvalidOperationException("Invalid operation type for string operation: " + operationType);
                 }
             }
-            this.BlockAtomResult.StringResult = result;
             return result;
         }
 
@@ -347,13 +346,14 @@ using System.ComponentModel;
         /// </summary>
         /// <param name="caller">string, kutsujan polku, joka kutsuu tätä funktiota.</param>
         /// <param name="valueA">bool, ensimmäinen arvo operaatiossa.</param>
-        /// <param name="valuesB">List&lt;bool&gt;, lista muista arvoista operaatiossa.</param>
+        /// <param name="valuesB">List &lt; bool &gt; , lista muista arvoista operaatiossa.</param>
         /// <param name="operationType">int, operaation tyyppi SelectedHandleEnum mukaan.</param>
         /// <returns>Palauttaa true, jos operaatio onnistui ja tulos on true; false, jos tulos on false.</returns>
         private bool PerformBoolOperation(string caller, bool valueA, List<bool> valuesB, int operationType)
         {
             string functionName = "->(OB)PerformBoolOperation";
             int result = valueA ? 1 : 0;
+            bool retVal=false;
 
             foreach (bool valueB in valuesB)
             {
@@ -367,8 +367,10 @@ using System.ComponentModel;
                     throw new InvalidOperationException("Invalid operation type for bool operation: " + operationType);
                 }
             }
-            this.BlockAtomResult.BoolResult = (result == 1);
-            return (result == 1);
+            if (result==1) {
+                retVal=true;
+            } else retVal=false;
+            return retVal;
         }
 
         /// <summary>
@@ -382,7 +384,11 @@ using System.ComponentModel;
             /// <summary>
             /// Kolmen luvun matemaattinen operaation siten, että erilliselle tekijälle tapahtuvat kaksi seuraavaa matemaattista operaatiota jotka ovat tyypiltään samanlaisia, esim. 5-1-2 tai 5/2/3, mutta tällä blokilla ei voi tehdä esim. 5-1+2, vaan siihen tarvitaan 2 erillistä blokkia
             /// </summary>
-            TWO_PLUS_ONE_OPERATION_3=3
+            TWO_PLUS_ONE_OPERATION_3=3,
+            /// <summary>
+            /// Neljän luvun matemaattinen operaation siten, että erilliselle tekijälle tapahtuvat kaksi seuraavaa matemaattista operaatiota jotka ovat tyypiltään samanlaisia, esim. 5-1-2-4 tai 5/2/3/2, mutta tällä blokilla ei voi tehdä esim. 5-1+2-3, vaan siihen tarvitaan 2 erillistä blokkia
+            /// </summary>
+            THREE_PLUS_ONE_OPERATION_4=4
         }
 
         /// <summary>

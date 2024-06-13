@@ -33,7 +33,9 @@ using System.ComponentModel;
             /// <summary> Matemaattisen operaation blokki, kuten esim. + - / * </summary>
             OPERATION_BLOCK_200=200,
             /// <summary> Matemaattisen operaation blokki, kuten esim. + - / * mutta kolmella muuttujan arvolla </summary>
-            OPERATION_BLOCK_3_PROPERTY_201=201,            
+            OPERATION_BLOCK_3_PROPERTY_201=201,
+            /// <summary> Matemaattisen operaation blokki, kuten esim. + - / * mutta neljällä muuttujan arvolla </summary>
+            OPERATION_BLOCK_4_PROPERTY_202=202,                      
             /// <summary> Tietoa blokin sisään syöttävä kahvablokki. Pakollinen kahvablokki, jolla blokeista voidaan tehdä suurempia kokonaisuuksia ja käyttää näitä suurempia kokonaisuuksia vähän samaan malliin kuin esim. ohjelmakoodin funktioita voidaan kutsua. Tällöin kaikille kahvablokin atomeille tulee pystyä syöttämään jokin tieto </summary>
             HANDLE_BLOCK_IN_300=300,
             /// <summary> Tietoa blokista ulkopuolelle syöttävä kahvablokki. Pakollinen kahvablokki, jolla blokeista voidaan tehdä suurempia kokonaisuuksia ja käyttää näitä suurempia kokonaisuuksia vähän samaan malliin kuin esim. ohjelmakoodin funktioita voidaan kutsua. Tällöin kaikille kahvablokin atomeille tulee pystyä syöttämään jokin tieto </summary>
@@ -196,6 +198,30 @@ using System.ComponentModel;
                             blockContainer=this.operblocksfact.CreateOperationalBlock<OperationBlock>(caller+functionname,this.proghmi,this.objectindexer,objindtype,parentuid,granparentuid, parentobjtype,routeid,blockn,motherconnrect,obfparams);
                             objectuid=blockContainer.Objectuid;
                             break;
+                        // Matemaattisen operaation blokki, josta tällä hetkellä löytyy +,-,/ ja * operaatiot, mutta tämä tekee sen kolmella muuttujalla                           
+                        case (int)blockTypeEnum.OPERATION_BLOCK_3_PROPERTY_201:
+                            objindtype=(int)ObjectIndexer.indexerObjectTypes.ACTIONCENTRE_OPERATIONBLOCK_OBJECT_341;
+                            obfparams = new OperationalBlocksFactoryParams {
+                                OperationalBlockType = (int)OperationBlock.OperationBlockTypeEnum.TWO_PLUS_ONE_OPERATION_3,
+                                SelectedHandle = (int)ComparisonBlock.SelectedHandleEnum.HANDLE_NOT_SET_0
+                            };
+                            routeid=motherconnrect.StoredUIcomps.StoredParamValues.RouteId;
+                            blockn=motherconnrect.StoredUIcomps.StoredParamValues.BlockName;
+                            blockContainer=this.operblocksfact.CreateOperationalBlock<OperationBlock>(caller+functionname,this.proghmi,this.objectindexer,objindtype,parentuid,granparentuid, parentobjtype,routeid,blockn,motherconnrect,obfparams);
+                            objectuid=blockContainer.Objectuid;
+                            break;
+                        // Matemaattisen operaation blokki, josta tällä hetkellä löytyy +,-,/ ja * operaatiot, mutta tämä tekee sen neljällä muuttujalla 
+                        case (int)blockTypeEnum.OPERATION_BLOCK_4_PROPERTY_202:
+                            objindtype=(int)ObjectIndexer.indexerObjectTypes.ACTIONCENTRE_OPERATIONBLOCK_OBJECT_341;
+                            obfparams = new OperationalBlocksFactoryParams {
+                                OperationalBlockType = (int)OperationBlock.OperationBlockTypeEnum.THREE_PLUS_ONE_OPERATION_4,
+                                SelectedHandle = (int)ComparisonBlock.SelectedHandleEnum.HANDLE_NOT_SET_0
+                            };
+                            routeid=motherconnrect.StoredUIcomps.StoredParamValues.RouteId;
+                            blockn=motherconnrect.StoredUIcomps.StoredParamValues.BlockName;
+                            blockContainer=this.operblocksfact.CreateOperationalBlock<OperationBlock>(caller+functionname,this.proghmi,this.objectindexer,objindtype,parentuid,granparentuid, parentobjtype,routeid,blockn,motherconnrect,obfparams);
+                            objectuid=blockContainer.Objectuid;
+                            break;                                                      
                             // ... Additional cases for other block types ...
 
                         default:
