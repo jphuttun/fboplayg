@@ -539,6 +539,30 @@ using System.ComponentModel;
         }
 
         /// <summary>
+        /// Tämä enumeraatio kertoo, mitä vaihtoehtoja BlockAtomValue:lla on sen edelleen välityksen suhteen
+        /// </summary>
+        public enum activeSynapseSendForward {
+            /// <summary>
+            /// Ei vielä määritelty - oletusarvoisesti ei lähetetä eteenpäin / ei ajeta, koska tieto ei ole aktiivinen
+            /// </summary>
+            NOT_DEFINED_YET=-1,
+            /// <summary>
+            /// Tietoa ei lähetetä eteenpäin / ei ajeta, koska tieto ei ole aktiivinen
+            /// </summary>
+            SENDING_FORWARD_FALSE_0=0,
+            /// <summary>
+            /// Tietoa lähetetään eteenpäin / ajetaan, koska tieto on aktiivinen ja sitä on tarkoitus käyttää seuraavassa blokissa
+            /// </summary>
+            SENDING_FORWARD_TRUE_1=1
+        };
+
+        /// <summary>
+        /// Tämä muuttuja kertoo tietyissä tilanteissa, halutaanko tämän tiedon siirtyvän eteenpäin vai ei. Jos tiedon halutaan siirtyvän eteenpäin, niin tällöin tämän tulisi olla 1
+        /// Tämä arvo on -1, jos sitä ei ole määritelty. Jos tämä arvo on 0, niin tällöin tämä connectionin tiedonvälitys on tyypiltään false ja jos tämä arvo on 1, niin tällöin tämä connectionin tiedonvälitys on tyypiltään true.
+        /// </summary>
+        public int ActiveSynapse { get; set; }        
+
+        /// <summary>
         /// Tämä metodi asettaa atomiin kerralla useita parametreja eri muodoissaan
         /// </summary>
         /// <param name="kutsuja"> string, kutsujan polku, joka kutsuu tätä kyseistä funktiota </param>
@@ -575,6 +599,7 @@ using System.ComponentModel;
             this.decatom=-1;
             this.stringatom="";
             this.boolatom=false;
+            this.ActiveSynapse=(int)activeSynapseSendForward.SENDING_FORWARD_TRUE_1;
         }
 
         /// <summary>
@@ -590,6 +615,7 @@ using System.ComponentModel;
             this.decatom=otherblockatomvalue.DecAtom;
             this.stringatom=otherblockatomvalue.StringAtom;
             this.boolatom=otherblockatomvalue.BoolAtom;
+            this.ActiveSynapse=otherblockatomvalue.ActiveSynapse;
             this.atomtype=contempo;
         }
     }

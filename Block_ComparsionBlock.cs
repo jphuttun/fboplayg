@@ -25,7 +25,15 @@ using System.ComponentModel;
             get { return this.comparisonblocktype; }
         }
 
-        private BlockAtomValue inverseBlockResultValue;     
+        /// <summary>
+        /// BlockAtomValue silloin, kun tieto lähetetään false handlesta
+        /// </summary>
+        private BlockAtomValue inverseBlockResultValue;
+
+        /// <summary>
+        /// BlockAtomValue silloin, kun tieto lähetetään true handlesta
+        /// </summary>
+        private BlockAtomValue comptrueBlockResultValue;    
 
         /// <summary> Luokan constructor, joka vastaa valintablokeista, eli tekee tyypillisiä IF vertailuja. Lopputulemana on 1, jos vertailu on true ja 0, jos vertailu on false. </summary>
         /// <param name="kutsuja"> string, kutsujan polku, joka kutsuu tätä kyseistä funktiota </param>
@@ -53,6 +61,7 @@ using System.ComponentModel;
             this.BlockName=blockn;
 
             this.BlockResultValue=new BlockAtomValue(); // Luodaan atomi, jota voidaan siirtää blokista toiseen. Tämä atomi on tarkoitettu vain ExecuteBlock toimintoa varten. Kahvojen atomit luodaan BlockHandles luokassa
+            this.comptrueBlockResultValue = new BlockAtomValue();
             this.inverseBlockResultValue = new BlockAtomValue(); 
 
             this.handleconnuidlist = new IncomingHandlesStatus(kutsuja+functionname,this.proghmi,this.objectindexer,this.ParentUID, this.GranParentUID, false);
@@ -127,7 +136,7 @@ using System.ComponentModel;
         public override long SendHandlesForward(string kutsuja, MotherConnectionRectangle motherconnrect)
         {
             string functionname = "->(CB)SendHandlesForward";
-            return this.SendHandlesForwardProtected(kutsuja+functionname, motherconnrect, this.BlockResultValue);
+            return this.SendHandlesForwardProtected(kutsuja+functionname, motherconnrect, this.blockhandles, (int)ConnectionRectangles.connectionBoxType.RED_BOX_RESULT_VALUE_3);
         }          
 
         /// <summary>
@@ -342,11 +351,22 @@ using System.ComponentModel;
                 bool resbool = comparisonResult == 1 ? true : false;
                 string resstr = comparisonResult == 1 ? "true" : "false";
                 this.BlockResultValue.AtomMultiSet(kutsuja+functionname,(int)BlockAtomValue.AtomTypeEnum.LONG_AND_INT_AND_DEC_AND_STRING_AND_BOOL,res,res,(decimal)res,resstr,resbool);
-                
+                this.comptrueBlockResultValue.AtomMultiSet(kutsuja+functionname,(int)BlockAtomValue.AtomTypeEnum.LONG_AND_INT_AND_DEC_AND_STRING_AND_BOOL,res,res,(decimal)res,resstr,resbool);
+                if (comparisonResult==1) {
+                    this.comptrueBlockResultValue.ActiveSynapse=(int)BlockAtomValue.activeSynapseSendForward.SENDING_FORWARD_TRUE_1;
+                } else {
+                    this.comptrueBlockResultValue.ActiveSynapse=(int)BlockAtomValue.activeSynapseSendForward.SENDING_FORWARD_FALSE_0;
+                }
+
                 res = comparisonResult == 1 ? 0 : 1;
                 resbool = comparisonResult == 1 ? false : true;
                 resstr = comparisonResult == 1 ? "false" : "true";
                 this.inverseBlockResultValue.AtomMultiSet(kutsuja+functionname,(int)BlockAtomValue.AtomTypeEnum.LONG_AND_INT_AND_DEC_AND_STRING_AND_BOOL,res,res,(decimal)res,resstr,resbool);
+                if (comparisonResult==1) {
+                    this.inverseBlockResultValue.ActiveSynapse=(int)BlockAtomValue.activeSynapseSendForward.SENDING_FORWARD_FALSE_0; 
+                } else {
+                    this.inverseBlockResultValue.ActiveSynapse=(int)BlockAtomValue.activeSynapseSendForward.SENDING_FORWARD_TRUE_1;
+                }                
 
                 // Hae kolmas kahva iterationclass=3 (laajennus)
                 SortedList<long, BlockHandle> class3Handles = GetBlockHandlesByIterationClass(kutsuja + functionname, (int)ConnectionRectangles.connectionBoxType.RED_BOX_RESULT_VALUE_3);
@@ -355,9 +375,11 @@ using System.ComponentModel;
                     if (class3Handles.Count != correctnumberofhandles) {
                         for (int i=0; i<correctnumberofhandles; i++) {
                             if (i==correctnumberofhandles-1) {
-                                class3Handles.ElementAt(i).Values.ReturnBlockAtomValueRef.CopyFrom(this.inverseBlockResultValue);
+                                class3Handles.ElementAt(i).Values.ReturnBlockAtomValueRef.CopyFrom(this.inverseBlockResultValue); // Tämä, kun välitetään eteenpäin false arvo
+                            } else if (i==0) {
+                                class3Handles.ElementAt(i).Values.ReturnBlockAtomValueRef.CopyFrom(this.BlockResultValue); // Tämä, kun välitetään eteenpäin result arvo
                             } else {
-                                class3Handles.ElementAt(i).Values.ReturnBlockAtomValueRef.CopyFrom(this.BlockResultValue);
+                                class3Handles.ElementAt(i).Values.ReturnBlockAtomValueRef.CopyFrom(this.comptrueBlockResultValue); // Tämä, kun välitetään eteenpäin true arvo
                             }
                         }
                     } else {

@@ -461,5 +461,50 @@ using System.ComponentModel;
             }
 
             return connUID;
-        } 
+        }
+
+        /// <summary>
+        /// Lähettää tulokset eteenpäin jokaiselle "result" pään Connection instansseille käyttäen BlockHandles instanssia ja iterationclass arvoa. ActiveSynapse tieto on päivitetty BlockAtomValue instansseille, josta voi tarkistaa, tulisiko kyseistä Connecitonia hyödyntää vai ei
+        /// </summary>
+        /// <param name="kutsuja">Kutsujan polku, joka kutsuu tätä funktiota.</param>
+        /// <param name="motherconnrect"> MotherConnectionRectangle instanssi, josta Connection instanssit haetaan. TODO: TÄLLÄ HETKELLÄ HIEMAN TURHA PARAMETRI, mutta voi tulla tarpeeseen lähitulevaisuudessa! </param>
+        /// <param name="blockHandles">BlockHandles instanssi, josta BlockHandle instanssit haetaan.</param>
+        /// <param name="iterationclass">Iterationclass arvo, jonka mukaan BlockHandle instanssit suodatetaan.</param>
+        /// <returns>{long} palauttaa 1, jos onnistui ja pääsi viimeiseen elementtiin listalla tai 2, jos ei yhtään kohdetta listalla. Palauttaa miinusmerkkisen arvon, jos eteen tuli virhe.</returns>
+        protected long SendHandlesForwardProtected(string kutsuja, MotherConnectionRectangle motherconnrect, BlockHandles blockHandles, int iterationclass)
+        {
+            string functionname = "->(IOB)SendHandlesForward";
+            long handleUID = blockHandles.ReturnBlockHandleUIDFirst(kutsuja + functionname, iterationclass);
+
+            while (handleUID >= 0) {
+                BlockHandle handle = blockHandles.ReturnBlockHandleByUID(kutsuja + functionname, handleUID, true);
+                if (handle != null) {
+                    long assosiatedObjectUID = handle.AssosiatedObjectUID;
+                    ConnectionRectangle connectionRectangle = this.objectindexer.GetTypedObject<ConnectionRectangle>(kutsuja + functionname, assosiatedObjectUID);
+                    if (connectionRectangle != null) {
+                        foreach (long connectionUID in connectionRectangle.ConnectionUIDs) {
+                            Connection conn = this.objectindexer.GetTypedObject<Connection>(kutsuja + functionname, connectionUID);
+                            if (conn != null) {
+                                conn.ReturnSendingBlockAtomValueRef.CopyFrom(handle.ReturnBlockAtomValueRef);
+                            } else {
+                                this.proghmi.sendError(kutsuja + functionname, "Failed to get connection by UID: " + connectionUID + " Errorvalue:" + this.objectindexer.GetLastError.ErrorCode + " ErrorMessage:" + this.objectindexer.GetLastError.WholeErrorMessage, -1382, 4, 4);
+                            }
+                        }
+                    } else {
+                        this.proghmi.sendError(kutsuja + functionname, "Failed to get connection rectangle by UID: " + assosiatedObjectUID + " Errorvalue:" + this.objectindexer.GetLastError.ErrorCode + " ErrorMessage:" + this.objectindexer.GetLastError.WholeErrorMessage, -1383, 4, 4);
+                    }
+                } else {
+                    this.proghmi.sendError(kutsuja + functionname, "Failed to get BlockHandle by UID: " + handleUID + " Errorvalue:" + this.objectindexer.GetLastError.ErrorCode + " ErrorMessage:" + this.objectindexer.GetLastError.WholeErrorMessage, -1384, 4, 4);
+                }
+                handleUID = blockHandles.ReturnBlockHandleUIDNext(kutsuja + functionname, iterationclass);
+            }
+
+            if (handleUID < -2) { // Tapahtui jokin virhe, joka palautetaan eteenpäin
+                this.proghmi.sendError(kutsuja + functionname, "Error to get BlockHandle UID from list! Response:"+handleUID, -1385, 4, 4);
+            } else if (handleUID < 0) {
+                handleUID = handleUID * -1; // Muutetaan palautettavaa lukua varten negatiivinen luku positiiviseksi, koska normaalioloissa luku olisi aina -1 tai -2 riippuen päästiinkö listan loppuun vai oliko listassa ylipäätään kohteita
+            }
+
+            return handleUID;
+        }        
     }
