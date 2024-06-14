@@ -348,6 +348,27 @@ using System.ComponentModel;
                 resstr = comparisonResult == 1 ? "false" : "true";
                 this.inverseBlockResultValue.AtomMultiSet(kutsuja+functionname,(int)BlockAtomValue.AtomTypeEnum.LONG_AND_INT_AND_DEC_AND_STRING_AND_BOOL,res,res,(decimal)res,resstr,resbool);
 
+                // Hae kolmas kahva iterationclass=3 (laajennus)
+                SortedList<long, BlockHandle> class3Handles = GetBlockHandlesByIterationClass(kutsuja + functionname, (int)ConnectionRectangles.connectionBoxType.RED_BOX_RESULT_VALUE_3);
+                if (class3Handles!=null) {
+                    int correctnumberofhandles=3;
+                    if (class3Handles.Count != correctnumberofhandles) {
+                        for (int i=0; i<correctnumberofhandles; i++) {
+                            if (i==correctnumberofhandles-1) {
+                                class3Handles.ElementAt(i).Values.ReturnBlockAtomValueRef.CopyFrom(this.inverseBlockResultValue);
+                            } else {
+                                class3Handles.ElementAt(i).Values.ReturnBlockAtomValueRef.CopyFrom(this.BlockResultValue);
+                            }
+                        }
+                    } else {
+                        this.proghmi.sendError(kutsuja + functionname, "Insufficient amount of BlockHandle for comparison. Amount:"+class3Handles.Count, -1380, 4, 4);
+                        return -13;
+                    }
+                } else {
+                    this.proghmi.sendError(kutsuja + functionname, "Class three handles was null!", -1381, 4, 4);
+                    return -14;                    
+                }          
+
                 // Palauta onnistuminen asetetun BlockAtomValuen tyyppi enumeraatio numerona
                 return (int)BlockAtomValue.AtomTypeEnum.LONG_AND_INT_AND_DEC_AND_STRING_AND_BOOL;
             }

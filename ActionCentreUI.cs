@@ -1653,7 +1653,7 @@ using Accessibility;
                     blockhandles=mothrect.ReturnActionCentreRef.GetBlockHandlesByUID(kutsuja+functionname,mothrect.ActionCentreBlockUID);
                     if (tempconnrect!=null) {
                         if (blockhandles!=null) {
-                            bhuid=blockhandles.CreateHandle(kutsuja+functionname,(int)ConnectionRectangles.connectionBoxType.GREEN_BOX_CHECK_VALUE_2,i-yellowBoxCount,tempconnrect.OwnUID,tempconnrect.BlockAtomValueRef); // i-yellowBoxCount - lähdetään uudessa indeksissä taas nollasta liikkeelle
+                            bhuid=blockhandles.CreateHandle(kutsuja+functionname,(int)ConnectionRectangles.connectionBoxType.RED_BOX_RESULT_VALUE_3,i,tempconnrect.OwnUID,tempconnrect.BlockAtomValueRef); // i-yellowBoxCount - lähdetään uudessa indeksissä taas nollasta liikkeelle
                             if (bhuid>=0) {
                                 tempconnrect.BlockHandleUIDForReference=bhuid;
                             } else {
