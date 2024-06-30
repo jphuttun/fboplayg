@@ -38,7 +38,7 @@ using System.ComponentModel;
         /// <param name="parentuid"> long, tämän objektin luoneen äitiobjektin UID </param>
         /// <param name="granparentuid"> long, tämän objektin luoneen äitiobjektin UID </param>
         /// <param name="objuid"> long, tämän objektin oma uid </param> 
-        /// <param name="valueblocktype"> int, minkälainen blokki on kyseessä - onko kyseessä blokki, jolle käyttäjä antaa omat arvonsa vai blokki, jossa haetaan arvo parametrilistasta vai minkätyyppinen value block </param>
+        /// <param name="valueblockt"> int, minkälainen blokki on kyseessä - onko kyseessä blokki, jolle käyttäjä antaa omat arvonsa vai blokki, jossa haetaan arvo parametrilistasta vai minkätyyppinen value block </param>
         /// <param name="selectedhandl"> int, Se vaihtoehto, joka on valittu comparisonblock kohteessa Operator comboboxin valinnaksi </param>
         /// <param name="route"> int, RouteId, joka vastaa käytännössä AltRoute tietoa Slotlistalla </param>
         /// <param name="blockn"> string, Blokin nimi / Title - ei käytetä mihinkään, mutta antaa lisätietoa käyttäjälle, miksi blokki on luotu </param>
@@ -57,7 +57,11 @@ using System.ComponentModel;
             this.objectindexer=objind;
             this.BlockResultValue=new BlockAtomValue(); // Luodaan atomi, jota voidaan siirtää blokista toiseen. Tämä atomi on tarkoitettu vain ExecuteBlock toimintoa varten. Kahvojen atomit luodaan BlockHandles luokassa
 
-            this.handleconnuidlist=new IncomingHandlesStatus(kutsuja+functionname,this.proghmi,this.objectindexer,this.ParentUID,this.GranParentUID,true); // Tällä blokilla ei ole tulopuolen kahvoja
+            if (valueblockt>=(int)ActionCentre.blockTypeEnum.CODE_VALUE_BLOCK_100 && valueblockt<(int)ActionCentre.blockTypeEnum.CODE_VALUE_BLOCK_SET_VALUE_150) {
+                this.handleconnuidlist=new IncomingHandlesStatus(kutsuja+functionname,this.proghmi,this.objectindexer,this.ParentUID,this.GranParentUID,true); // Näillä blokkityypeillä ei ole tulopuolen kahvoja
+            } else {
+                this.handleconnuidlist=new IncomingHandlesStatus(kutsuja+functionname,this.proghmi,this.objectindexer,this.ParentUID,this.GranParentUID,false); // Näillä blokkityypeillä sitävastoin on tulopuolen kahvat, mutta ei lähtöpuolen kahvoja
+            }
 
             this.blockhandles=new BlockHandles(kutsuja+functionname, this.OwnUID, this.ParentUID, this.proghmi, this.objectindexer); // Luodaan luokka, joka pitää yllä kahvojen tietoja
         }
@@ -219,6 +223,8 @@ using System.ComponentModel;
                     this.proghmi.sendError(kutsuja+functionname, "MotherConnectionRectangle is null", -1251, 4, 4);
                     retVal = -28;
                 }
+            } else if (this.ValueBlockType==(int)ActionCentre.blockTypeEnum.CODE_VALUE_BLOCK_SET_VALUE_150) { // Jos kyseessä on tiedon asettaminen ohjelman parametreihin
+            
             } else {
                 this.proghmi.sendError(kutsuja+functionname,"Unknown ValueBlock type! UID:"+this.OwnUID+" AltRoute:"+this.RouteId+" Blockname:"+this.BlockName,-1208,4,4); 
                 retVal=-14;

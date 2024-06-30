@@ -30,6 +30,8 @@ using System.ComponentModel;
             CODE_VALUE_BLOCK_100=100,
             /// <summary> Blokki, johon käyttäjä saa itse laittaa haluamanlaisensa alkuarvon </summary>
             OWN_VALUE_BLOCK_101=101,
+            /// <summary> Blokki, joka asettaa järjestelmän parametriin arvon, jonka käyttäjä tuo blokille </summary>
+            CODE_VALUE_BLOCK_SET_VALUE_150=150,
             /// <summary> Matemaattisen operaation blokki, kuten esim. + - / * </summary>
             OPERATION_BLOCK_200=200,
             /// <summary> Matemaattisen operaation blokki, kuten esim. + - / * mutta kolmella muuttujan arvolla </summary>
