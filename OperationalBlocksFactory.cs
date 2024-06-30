@@ -422,6 +422,24 @@ using System.ComponentModel;
             STRING_AND_BOOL = 203
         }
 
+        /// <summary>
+        /// Tämä metodi testaa, onko tämän atomin tyyppi sama, kuin annettu atomtype
+        /// </summary>
+        /// <param name="atomtype">int, enumeroitu atomin tyyppi, jota testataan onko atomin tyyppi sama kuin tämä annettu luku</param>
+        /// <returns>{int} Palauttaa 1, jos atomin tyyppi oli sama ja 0, jos atomin tyyppi ei ollut sama. Palauttaa &lt; 0 jos tuli virhe </returns>
+        public int TestIfSameAtomType(string kutsuja, int atomtype)
+        {
+            if (Enum.GetName(typeof(AtomTypeEnum), atomtype)!=null) {
+                if (this.atomtype==atomtype) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            } else {
+                return -105; // Ei ollut sen numeroista kohdetta lainkaan AtomTypeEnum listalla
+            }
+        }
+
         private int intatom=-1;
 
         public int IntAtom { 

@@ -99,60 +99,78 @@ using System.ComponentModel;
         /// <param name="motherconnrect"> MotherConnectionRectangle, se pääblokin luokan instanssin referenssi, jonka kautta saamme käytyä noutamassa tiedot siitä, mitä blokille on luotu</param>
         /// <param name="oneslot"> OneSlot, sen slotin referenssi, josta tietoja "saatetaan" hakea. Kyseisen slotin kautta on myös ObjectIndexerillä mahdollista päästä käsiksi koko ohjelman perusparametreihin. Tämä voidaan antaa myös null tietona, jos kyseessä on käyttäjän itsensä antama arvo, jolloin OneSlot objektin referenssiä ei tarvita </param>
         /// <returns>{int} palauttaa BlockAtomValue:n tyypin enum:in, jos onnistui asettamaan kohteen tälle blokille Result tiedoksi. Jos tulee virhe, niin palauttaa arvon, joka on &lt; 0.</returns>
-        public override int ExecuteBlock(string kutsuja, MotherConnectionRectangle motherconnrect, OneSlot oneslot=null)
-        {
-            string functionname="->(VB)ExecuteBlock";
+        public override int ExecuteBlock(string kutsuja, MotherConnectionRectangle motherconnrect, OneSlot oneslot = null) {
+            string functionname = "->(VB)ExecuteBlock";
+            int retVal = -1; // Epämääräinen virhe, jos funktio palauttaa tämän luvun
+
+            if (this.ValueBlockType == (int)ActionCentre.blockTypeEnum.CODE_VALUE_BLOCK_100) {
+                retVal = HandleCodeValueBlock100(kutsuja + functionname, motherconnrect, oneslot);
+            } else if (this.ValueBlockType == (int)ActionCentre.blockTypeEnum.OWN_VALUE_BLOCK_101) {
+                retVal = HandleOwnValueBlock101(kutsuja + functionname, motherconnrect);
+            } else if (this.ValueBlockType == (int)ActionCentre.blockTypeEnum.CODE_VALUE_BLOCK_SET_VALUE_150) {
+                retVal = HandleCodeValueBlockSetValue150(kutsuja + functionname, motherconnrect, oneslot);
+            } else {
+                this.proghmi.sendError(kutsuja + functionname, "Unknown ValueBlock type! UID:" + this.OwnUID + " AltRoute:" + this.RouteId + " Blockname:" + this.BlockName, -1208, 4, 4);
+                retVal = -14;
+            }
+
+            return retVal;
+        }        
+
+        /// <summary>
+        /// Handles the logic for fetching parameter values for the CODE_VALUE_BLOCK_100 block type.
+        /// </summary>
+        /// <param name="kutsuja">The caller's path invoking this function.</param>
+        /// <param name="motherconnrect">Reference to the MotherConnectionRectangle instance, providing necessary information about the block.</param>
+        /// <param name="oneslot">Reference to the OneSlot instance, which may provide information needed to fetch parameter values.</param>
+        /// <returns> {int} Returns the BlockAtomValue type enumeration if successful. Returns a negative value if an error occurs.</returns>
+        private int HandleCodeValueBlock100(string kutsuja, MotherConnectionRectangle motherconnrect, OneSlot oneslot) {
+            string functionname="->(VB)HandleCodeValueBlock100";
             int retVal=-1; // Epämääräinen virhe, jos funktio palauttaa tämän luvun
             long granparentuid=-1;
             SmartBot currsmartbotref=null;
             int valu=-1;
 
-            // Jos kyseessä on koodin arvoista lukuja hakeva blokki
-            if (this.ValueBlockType==(int)ActionCentre.blockTypeEnum.CODE_VALUE_BLOCK_100) {
-                if (oneslot!=null && motherconnrect!=null) {
-                    string groupname=motherconnrect.StoredUIcomps.StoredParamValues.SelectedGroup;
-                    string fetchvalue=motherconnrect.StoredUIcomps.StoredParamValues.SelectedOperator;
-                    long ouid=oneslot.ObjUniqueRefNum;
-                    if (ouid>=0) {
-                        if (this.objectindexer.objectlist.IndexOfKey(ouid)>-1) {
-                            granparentuid=this.objectindexer.objectlist[ouid].GranParentUID;
-                            if (granparentuid>=0) {
-                                int objtyp=this.objectindexer.ReturnObjectType(kutsuja+functionname,granparentuid);
-                                if (objtyp==(int)ObjectIndexer.indexerObjectTypes.SMARTBOT_OBJECT_3) {
-                                    currsmartbotref=this.objectindexer.GetTypedObject<SmartBot>(kutsuja+functionname,granparentuid); // Palauttaa Smartbot tyyppisen objektin referenssin
-                                    if (currsmartbotref==null) {
-                                        this.proghmi.sendError(kutsuja+functionname, "SmartBot reference is null! ! UID:"+ouid+" GranparentUID:"+granparentuid+" Error number:"+this.objectindexer.GetLastError.ErrorCode+" Error message:"+this.objectindexer.GetLastError.WholeErrorMessage, -1238, 4, 4);
-                                        retVal = -15;
-                                        return retVal;
-                                    }
-                                } else {
-                                    this.proghmi.sendError(kutsuja+functionname, "Invalid object type! UID:"+ouid+" GranparentUID:"+granparentuid+" Objtype:"+objtyp, -1239, 4, 4);
-                                    retVal = -16;
+            if (oneslot!=null && motherconnrect!=null) {
+                string groupname=motherconnrect.StoredUIcomps.StoredParamValues.SelectedGroup;
+                string fetchvalue=motherconnrect.StoredUIcomps.StoredParamValues.SelectedOperator;
+                long ouid=oneslot.ObjUniqueRefNum;
+                if (ouid>=0) {
+                    if (this.objectindexer.objectlist.IndexOfKey(ouid)>-1) {
+                        granparentuid=this.objectindexer.objectlist[ouid].GranParentUID;
+                        if (granparentuid>=0) {
+                            int objtyp=this.objectindexer.ReturnObjectType(kutsuja+functionname,granparentuid);
+                            if (objtyp==(int)ObjectIndexer.indexerObjectTypes.SMARTBOT_OBJECT_3) {
+                                currsmartbotref=this.objectindexer.GetTypedObject<SmartBot>(kutsuja+functionname,granparentuid); // Palauttaa Smartbot tyyppisen objektin referenssin
+                                if (currsmartbotref==null) {
+                                    this.proghmi.sendError(kutsuja+functionname, "SmartBot reference is null! ! UID:"+ouid+" GranparentUID:"+granparentuid+" Error number:"+this.objectindexer.GetLastError.ErrorCode+" Error message:"+this.objectindexer.GetLastError.WholeErrorMessage, -1238, 4, 4);
+                                    retVal = -15;
+                                    return retVal;
                                 }
                             } else {
-                                this.proghmi.sendError(kutsuja+functionname, "GranParentUID is less than 0! UID:"+ouid+" GranparentUID:"+granparentuid, -1240, 4, 4);
-                                retVal = -17;
+                                this.proghmi.sendError(kutsuja+functionname, "Invalid object type! UID:"+ouid+" GranparentUID:"+granparentuid+" Objtype:"+objtyp, -1239, 4, 4);
+                                retVal = -16;
                             }
                         } else {
-                            this.proghmi.sendError(kutsuja+functionname, "Object index key not found! UID:"+ouid, -1241, 4, 4);
-                            retVal = -18;
+                            this.proghmi.sendError(kutsuja+functionname, "GranParentUID is less than 0! UID:"+ouid+" GranparentUID:"+granparentuid, -1240, 4, 4);
+                            retVal = -17;
                         }
                     } else {
-                        this.proghmi.sendError(kutsuja+functionname, "ObjUniqueRefNum is less than 0! UID:"+ouid, -1242, 4, 4);
-                        retVal = -19;
+                        this.proghmi.sendError(kutsuja+functionname, "Object index key not found! UID:"+ouid, -1241, 4, 4);
+                        retVal = -18;
                     }
+                } else {
+                    this.proghmi.sendError(kutsuja+functionname, "ObjUniqueRefNum is less than 0! UID:"+ouid, -1242, 4, 4);
+                    retVal = -19;
+                }
+                if (fetchvalue!="") {
                     if (groupname=="SLOT_VALUES") {
-                        if (fetchvalue!="") {
-                            valu=OneSlot.GetSlotParamValue(kutsuja+functionname,fetchvalue); // Saadaan parametria vastaava kohde int muotoisena enum tyyppinä
-                            if (valu>=0) {
-                                retVal=oneslot.SetSlotValueParamToBlockAtomValue(kutsuja+functionname, this.BlockResultValue, valu, oneslot); // Asetetaan tieto BlockResultValue atomiin                                
-                            } else {
-                                this.proghmi.sendError(kutsuja+functionname,"Couldn't convert fetched to enum value! Value:"+valu+" Fetched:#"+fetchvalue+"# GroupName:#"+groupname+"# UID:"+this.OwnUID+" AltRoute:"+this.RouteId+" Blockname:"+this.BlockName,-1206,4,4);
-                                retVal=-12;
-                            }
+                        valu=OneSlot.GetSlotParamValue(kutsuja+functionname,fetchvalue); // Saadaan parametria vastaava kohde int muotoisena enum tyyppinä
+                        if (valu>=0) {
+                            retVal=oneslot.SetSlotValueParamToBlockAtomValue(kutsuja+functionname, this.BlockResultValue, valu, oneslot); // Asetetaan tieto BlockResultValue atomiin                                
                         } else {
-                            this.proghmi.sendError(kutsuja+functionname,"Invalid fetch value - EMPTY! Fetched:#"+fetchvalue+"# GroupName:#"+groupname+"# UID:"+this.OwnUID+" AltRoute:"+this.RouteId+" Blockname:"+this.BlockName,-1207,4,4);
-                            retVal=-13;
+                            this.proghmi.sendError(kutsuja+functionname,"Couldn't convert fetched to enum value! Value:"+valu+" Fetched:#"+fetchvalue+"# GroupName:#"+groupname+"# UID:"+this.OwnUID+" AltRoute:"+this.RouteId+" Blockname:"+this.BlockName,-1206,4,4);
+                            retVal=-12;
                         }
                     } else if (groupname=="MAIN_PARAMS") {
                         if (currsmartbotref!=null) {
@@ -198,36 +216,155 @@ using System.ComponentModel;
                         retVal=-11;
                     }
                 } else {
-                    this.proghmi.sendError(kutsuja+functionname,"Another important reference was null! UID:"+this.OwnUID+" AltRoute:"+this.RouteId+" Blockname:"+this.BlockName,-1204,4,4);
-                    retVal=-10;
+                    this.proghmi.sendError(kutsuja+functionname,"Invalid fetch value - EMPTY! Fetched:#"+fetchvalue+"# GroupName:#"+groupname+"# UID:"+this.OwnUID+" AltRoute:"+this.RouteId+" Blockname:"+this.BlockName,-1207,4,4);
+                    retVal=-13;
                 }
-            } else if (this.ValueBlockType==(int)ActionCentre.blockTypeEnum.OWN_VALUE_BLOCK_101) { // Jos kyseessä on käyttäjän itsensä antama arvo eli 101 arvo blockTypeEnumeraatiossa
-                if (motherconnrect!=null) {
-                    string groupname=motherconnrect.StoredUIcomps.StoredParamValues.SelectedGroup;
-                    string fetchvalue=motherconnrect.StoredUIcomps.StoredParamValues.SelectedOperator;
-                    int atomTypeValue = SmartBot.GetEnumValue<BlockAtomValue.AtomTypeEnum>(kutsuja+functionname, groupname);
+            } else {
+                this.proghmi.sendError(kutsuja+functionname,"Another important reference was null! UID:"+this.OwnUID+" AltRoute:"+this.RouteId+" Blockname:"+this.BlockName,-1204,4,4);
+                retVal=-10;
+            }
+        }
 
-                    if (atomTypeValue >= 0) {
-                        string atomType = ((BlockAtomValue.AtomTypeEnum)atomTypeValue).ToString().Substring(0, 1); // Get the initial character of the AtomTypeEnum string
-                        if (this.proghmi.TestValueType(kutsuja+functionname, atomType, fetchvalue)) {
-                            retVal = this.SetOwnParamValueToBlockAtomValue(kutsuja+functionname, this.BlockResultValue, atomTypeValue, fetchvalue); // Asetetaan tieto BlockResultValue atomiin
-                        } else {
-                            this.proghmi.sendError(kutsuja+functionname, "Invalid value type for fetchvalue! Value:#"+fetchvalue+"# GroupName:#"+groupname+"# UID:"+this.OwnUID+" AltRoute:"+this.RouteId+" Blockname:"+this.BlockName,-1249,4,4);
-                            retVal = -26;
-                        }
+        /// <summary>
+        /// Handles the logic for setting parameter values for the OWN_VALUE_BLOCK_101 block type.
+        /// </summary>
+        /// <param name="kutsuja">The caller's path invoking this function.</param>
+        /// <param name="motherconnrect">Reference to the MotherConnectionRectangle instance, providing necessary information about the block.</param>
+        /// <returns>{int} Returns the BlockAtomValue type enumeration if successful. Returns a negative value if an error occurs.</returns>
+        private int HandleOwnValueBlock101(string kutsuja, MotherConnectionRectangle motherconnrect) {
+            if (motherconnrect!=null) {
+                string groupname=motherconnrect.StoredUIcomps.StoredParamValues.SelectedGroup;
+                string fetchvalue=motherconnrect.StoredUIcomps.StoredParamValues.SelectedOperator;
+                int atomTypeValue = SmartBot.GetEnumValue<BlockAtomValue.AtomTypeEnum>(kutsuja+functionname, groupname);
+
+                if (atomTypeValue >= 0) {
+                    string atomType = ((BlockAtomValue.AtomTypeEnum)atomTypeValue).ToString().Substring(0, 1); // Get the initial character of the AtomTypeEnum string
+                    if (this.proghmi.TestValueType(kutsuja+functionname, atomType, fetchvalue)) {
+                        retVal = this.SetOwnParamValueToBlockAtomValue(kutsuja+functionname, this.BlockResultValue, atomTypeValue, fetchvalue); // Asetetaan tieto BlockResultValue atomiin
                     } else {
-                        this.proghmi.sendError(kutsuja+functionname, "Couldn't convert groupname to AtomTypeEnum! GroupName:#"+groupname+"# UID:"+this.OwnUID+" AltRoute:"+this.RouteId+" Blockname:"+this.BlockName,-1250,4,4);
-                        retVal = -27;
+                        this.proghmi.sendError(kutsuja+functionname, "Invalid value type for fetchvalue! Value:#"+fetchvalue+"# GroupName:#"+groupname+"# UID:"+this.OwnUID+" AltRoute:"+this.RouteId+" Blockname:"+this.BlockName,-1249,4,4);
+                        retVal = -26;
                     }
                 } else {
-                    this.proghmi.sendError(kutsuja+functionname, "MotherConnectionRectangle is null", -1251, 4, 4);
-                    retVal = -28;
+                    this.proghmi.sendError(kutsuja+functionname, "Couldn't convert groupname to AtomTypeEnum! GroupName:#"+groupname+"# UID:"+this.OwnUID+" AltRoute:"+this.RouteId+" Blockname:"+this.BlockName,-1250,4,4);
+                    retVal = -27;
                 }
-            } else if (this.ValueBlockType==(int)ActionCentre.blockTypeEnum.CODE_VALUE_BLOCK_SET_VALUE_150) { // Jos kyseessä on tiedon asettaminen ohjelman parametreihin
-            
             } else {
-                this.proghmi.sendError(kutsuja+functionname,"Unknown ValueBlock type! UID:"+this.OwnUID+" AltRoute:"+this.RouteId+" Blockname:"+this.BlockName,-1208,4,4); 
-                retVal=-14;
+                this.proghmi.sendError(kutsuja+functionname, "MotherConnectionRectangle is null", -1251, 4, 4);
+                retVal = -28;
+            }
+        }
+
+        /// <summary>
+        /// Asettaa ohjelman parametreihin tiedon BlockAtomValue:sta.
+        /// </summary>
+        /// <param name="kutsuja"> Kutsujan polku, joka kutsuu tätä funktiota. </param>
+        /// <param name="motherconnrect"> MotherConnectionRectangle, josta tarvittavat tiedot haetaan. </param>
+        /// <param name="oneslot"> OneSlot, jonka kautta asetettavat tiedot haetaan. </param>
+        /// <returns>{int} Palauttaa 1, jos toimenpide onnistui. Palauttaa negatiivisen luvun, jos toimenpide epäonnistui. </returns>
+        private int HandleCodeValueBlockSetValue150(string kutsuja, MotherConnectionRectangle motherconnrect, OneSlot oneslot) {
+            string functionname = "->(VB)HandleCodeValueBlockSetValue150";
+            int retVal = -1;
+            long granparentuid = -1;
+            SmartBot currsmartbotref = null;
+
+            if (motherconnrect != null) {
+                string groupname = motherconnrect.StoredUIcomps.StoredParamValues.SelectedGroup;
+                string fetchvalue = motherconnrect.StoredUIcomps.StoredParamValues.SelectedOperator;
+                long ouid = oneslot.ObjUniqueRefNum;
+
+                if (ouid>=0) {
+                    if (this.objectindexer.objectlist.IndexOfKey(ouid)>-1) {
+                        granparentuid=this.objectindexer.objectlist[ouid].GranParentUID;
+                        if (granparentuid>=0) {
+                            int objtyp=this.objectindexer.ReturnObjectType(kutsuja+functionname,granparentuid);
+                            if (objtyp==(int)ObjectIndexer.indexerObjectTypes.SMARTBOT_OBJECT_3) {
+                                currsmartbotref=this.objectindexer.GetTypedObject<SmartBot>(kutsuja+functionname,granparentuid); // Palauttaa Smartbot tyyppisen objektin referenssin
+                                if (currsmartbotref==null) {
+                                    this.proghmi.sendError(kutsuja+functionname, "SmartBot reference is null! ! UID:"+ouid+" GranparentUID:"+granparentuid+" Error number:"+this.objectindexer.GetLastError.ErrorCode+" Error message:"+this.objectindexer.GetLastError.WholeErrorMessage, -1418, 4, 4);
+                                    retVal = -35;
+                                    return retVal;
+                                }
+                            } else {
+                                this.proghmi.sendError(kutsuja+functionname, "Invalid object type! UID:"+ouid+" GranparentUID:"+granparentuid+" Objtype:"+objtyp, -1419, 4, 4);
+                                retVal = -36;
+                            }
+                        } else {
+                            this.proghmi.sendError(kutsuja+functionname, "GranParentUID is less than 0! UID:"+ouid+" GranparentUID:"+granparentuid, -1420, 4, 4);
+                            retVal = -37;
+                        }
+                    } else {
+                        this.proghmi.sendError(kutsuja+functionname, "Object index key not found! UID:"+ouid, -1421, 4, 4);
+                        retVal = -38;
+                    }
+                } else {
+                    this.proghmi.sendError(kutsuja+functionname, "ObjUniqueRefNum is less than 0! UID:"+ouid, -1422, 4, 4);
+                    retVal = -39;
+                }
+
+                long handleUID = this.ReturnBlockHandlesRef.ReturnBlockHandleUIDFirst(kutsuja + functionname, (int)ConnectionRectangles.connectionBoxType.YELLOW_BOX_COMPARE_VALUE_1);
+
+                if (handleUID < 0) {
+                    this.proghmi.sendError(kutsuja + functionname, "Invalid handle UID. HandleUID: " + handleUID, -1380, 4, 4);
+                    return -29;
+                }
+
+                BlockHandle handle = this.ReturnBlockHandlesRef.ReturnBlockHandleByUID(kutsuja + functionname, handleUID);
+
+                if (handle == null) {
+                    this.proghmi.sendError(kutsuja + functionname, "Handle is null. HandleUID: " + handleUID, -1381, 4, 4);
+                    return -30;
+                }
+
+                BlockAtomValue atomValue = handle.ReturnBlockAtomValueRef;
+
+                if (atomValue == null) {
+                    this.proghmi.sendError(kutsuja + functionname, "BlockAtomValue is null. HandleUID: " + handleUID, -1382, 4, 4);
+                    return -31;
+                }
+
+                int atomTypeValue = SmartBot.GetEnumValue<BlockAtomValue.AtomTypeEnum>(kutsuja + functionname, groupname);
+
+                if (atomTypeValue >= 0) {
+                    if (fetchvalue != "") {
+                        if (groupname == "SLOT_VALUES") {
+                            retVal = oneslot.SetBlockAtomValueToSlotValueParam(kutsuja + functionname, atomValue, atomTypeValue, fetchvalue);
+                            if (retVal < 0) {
+                                this.proghmi.sendError(kutsuja + functionname, "Failed to set slot value. AtomType: " + atomTypeValue + ", FetchValue: " + fetchvalue, -1383, 4, 4);
+                            }
+                        } else if (groupname == "MAIN_PARAMS") {
+                            if (currsmartbotref != null) {
+                                retVal = currsmartbotref.SetBlockAtomValueToMainParams(kutsuja + functionname, atomValue, fetchvalue);
+                            } else {
+                                this.proghmi.sendError(kutsuja + functionname, "SmartBot reference is null for MAIN_PARAMS", -1425, 4, 4);
+                            }
+                        } else if (groupname == "TRIGGERLIST_PARAMS") {
+                            if (currsmartbotref != null) {
+                                retVal = currsmartbotref.SetBlockAtomValueToTriggerlistParams(kutsuja + functionname, atomValue, fetchvalue);
+                            } else {
+                                this.proghmi.sendError(kutsuja + functionname, "SmartBot reference is null for TRIGGERLIST_PARAMS", -1426, 4, 4);
+                            }
+                        } else if (groupname == "COURSE_INFO") {
+                            if (currsmartbotref != null) {
+                                retVal = currsmartbotref.SetBlockAtomValueToCourseInfoParams(kutsuja + functionname, atomValue, fetchvalue);
+                            } else {
+                                this.proghmi.sendError(kutsuja + functionname, "SmartBot reference is null for COURSE_INFO", -1427, 4, 4);
+                            }
+                        } else {
+                            this.proghmi.sendError(kutsuja + functionname, "No such name in parameter list! Name:#" + groupname + "# UID:" + this.OwnUID + " AltRoute:" + this.RouteId + " Blockname:" + this.BlockName, -1423, 4, 4);
+                            retVal = -34;
+                        }
+                    } else {
+                        this.proghmi.sendError(kutsuja + functionname, "Invalid fetch value - EMPTY! Fetched:#" + fetchvalue + "# GroupName:#" + groupname + "# UID:" + this.OwnUID + " AltRoute:" + this.RouteId + " Blockname:" + this.BlockName, -1424, 4, 4);
+                        retVal = -40;
+                    }
+                } else {
+                    this.proghmi.sendError(kutsuja + functionname, "Invalid atom type value. GroupName: " + groupname, -1384, 4, 4);
+                    retVal = -32;
+                }
+            } else {
+                this.proghmi.sendError(kutsuja + functionname, "MotherConnectionRectangle is null", -1385, 4, 4);
+                retVal = -33;
             }
 
             return retVal;

@@ -351,7 +351,7 @@ using System.ComponentModel;
                 return null;
             }
 
-            for (int iterationclass=1; iterationclass<=2; iterationclass++) {
+            for (int iterationclass=(int)ConnectionRectangles.connectionBoxType.MIN_VALUE_INDEX; iterationclass<=(int)ConnectionRectangles.connectionBoxType.MAX_VALUE_INDEX_FOR_INCOMING_HANDLES; iterationclass++) {
                 long connectionUID = motherconnrect.smallBoxRectangles.IterateThroughConnectionsFirst(kutsuja+functionname, iterationclass);
                 while (connectionUID >= 0) {
                     Connection conn = this.objectindexer.GetTypedObject<Connection>(kutsuja+functionname, connectionUID);

@@ -406,7 +406,7 @@ using System.Threading;
         /// <returns>{int} Palauttaa positiivisena lukuna blockatomvalue:n tietotyypin numeron (1-5), jos toimenpide onnistui. Palauttaa negatiivisen luvun (sisäisen virhekoodin), jos toimenpide epäonnistui. </returns>
         public int SetSlotValueParamToBlockAtomValue(string kutsuja, BlockAtomValue blockatom, int blockparamvaluetype, OneSlot oneslot) {
             int retVal = -30; // Epämääräinen virhe
-            string functionname = "->(VB)SetSlotValueParamToBlockAtomValue";
+            string functionname = "->(OS)SetSlotValueParamToBlockAtomValue";
 
             if (blockatom == null) {
                 this.phmi.sendError(kutsuja + functionname, "BlockAtomValue is null", -1209, 4, 4);
@@ -541,7 +541,284 @@ using System.Threading;
             }
 
             return retVal;
-        }        
+        }
+
+        /// <summary>
+        /// Metodi, joka asettaa BlockAtomValue-objektista blockparamvaluetype enumeraatiokohtaa vastaavan tiedon OneSlot-objektin samantyyppiseen tietosäiliöön.
+        /// </summary>
+        /// <param name="kutsuja"> string, kutsujan polku, joka kutsuu tätä kyseistä funktiota </param>
+        /// <param name="blockatom"> BlockAtomValue, luokan instanssin referenssi, josta asetettava arvo otetaan </param>
+        /// <param name="blockparamvaluetype"> int, OneSlot.SlotParams enumeraatio tyyppiä vastaava int tieto, jonka perusteella osataan asettaa OneSlot-objektiin oikea parametri BlockAtomValue-luokan instanssista </param>
+        /// <param name="oneslot"> OneSlot luokan instanssin referenssi, jonne voidaan asettaa oikea arvo BlockAtomValue instanssista blockparamvaluetype tiedon perusteella </param>
+        /// <returns>{int} Palauttaa positiivisena lukuna blockatomvalue:n tietotyypin numeron (1-5), jos toimenpide onnistui. Palauttaa negatiivisen luvun (sisäisen virhekoodin), jos toimenpide epäonnistui. </returns>
+        public int SetBlockAtomValueToSlotValueParam(string kutsuja, BlockAtomValue blockatom, int blockparamvaluetype, OneSlot oneslot) {
+            int retVal = -30; // Epämääräinen virhe
+            string functionname = "->(OS)SetBlockAtomValueToSlotValueParam";
+
+            if (blockatom == null) {
+                this.phmi.sendError(kutsuja + functionname, "BlockAtomValue is null", -1386, 4, 4);
+                return -31;
+            }
+
+            if (oneslot == null) {
+                this.phmi.sendError(kutsuja + functionname, "OneSlot is null", -1387, 4, 4);
+                return -32;
+            }
+
+            if (!Enum.IsDefined(typeof(OneSlot.SlotParams), blockparamvaluetype)) {
+                this.phmi.sendError(kutsuja + functionname, "Invalid blockparamvaluetype", -1388, 4, 4);
+                return -33;
+            }
+
+            try {
+                OneSlot.SlotParams paramType = (OneSlot.SlotParams)blockparamvaluetype;
+                switch (paramType) {
+                    case OneSlot.SlotParams.ObjUniqueRefNum:
+                        retVal = 2;
+                        if (blockatom.TestIfSameAtomType(kutsuja+functionname, retVal)==1) {
+                            oneslot.ObjUniqueRefNum = blockatom.LongAtom;
+                        } else {
+                            this.phmi.sendError(kutsuja + functionname, "BlockAtom atom type was different than parameter type! Paramtype:" + retVal + " BlockAtomType:" + blockatom.AtomType, -1391, 4, 4);
+                            return -36;
+                        }
+                        break;
+                    case OneSlot.SlotParams.SlotValue:
+                        retVal = 3;
+                        if (blockatom.TestIfSameAtomType(kutsuja + functionname, retVal) == 1) {
+                            oneslot.SlotValue = blockatom.DecAtom;
+                        } else {
+                            this.phmi.sendError(kutsuja + functionname, "BlockAtom atom type was different than parameter type! Paramtype:" + retVal + " BlockAtomType:" + blockatom.AtomType, -1392, 4, 4);
+                            return -37;
+                        }
+                        break;
+                    case OneSlot.SlotParams.OrderTrueValue:
+                        retVal = 3;
+                        if (blockatom.TestIfSameAtomType(kutsuja + functionname, retVal) == 1) {
+                            oneslot.OrderTrueValue = blockatom.DecAtom;
+                        } else {
+                            this.phmi.sendError(kutsuja + functionname, "BlockAtom atom type was different than parameter type! Paramtype:" + retVal + " BlockAtomType:" + blockatom.AtomType, -1393, 4, 4);
+                            return -38;
+                        }
+                        break;
+                    case OneSlot.SlotParams.IsOrderAttachedType:
+                        retVal = 1;
+                        if (blockatom.TestIfSameAtomType(kutsuja + functionname, retVal) == 1) {
+                            oneslot.IsOrderAttachedType = blockatom.IntAtom;
+                        } else {
+                            this.phmi.sendError(kutsuja + functionname, "BlockAtom atom type was different than parameter type! Paramtype:" + retVal + " BlockAtomType:" + blockatom.AtomType, -1394, 4, 4);
+                            return -39;
+                        }
+                        break;
+                    case OneSlot.SlotParams.IsOrderAttached:
+                        retVal = 5;
+                        if (blockatom.TestIfSameAtomType(kutsuja + functionname, retVal) == 1) {
+                            oneslot.IsOrderAttached = blockatom.BoolAtom;
+                        } else {
+                            this.phmi.sendError(kutsuja + functionname, "BlockAtom atom type was different than parameter type! Paramtype:" + retVal + " BlockAtomType:" + blockatom.AtomType, -1395, 4, 4);
+                            return -40;
+                        }
+                        break;
+                    case OneSlot.SlotParams.SlotCreationNumber:
+                        retVal = 2;
+                        if (blockatom.TestIfSameAtomType(kutsuja + functionname, retVal) == 1) {
+                            oneslot.SlotCreationNumber = blockatom.LongAtom;
+                        } else {
+                            this.phmi.sendError(kutsuja + functionname, "BlockAtom atom type was different than parameter type! Paramtype:" + retVal + " BlockAtomType:" + blockatom.AtomType, -1396, 4, 4);
+                            return -41;
+                        }
+                        break;
+                    case OneSlot.SlotParams.SlotUniqueId:
+                        retVal = 4;
+                        if (blockatom.TestIfSameAtomType(kutsuja + functionname, retVal) == 1) {
+                            oneslot.SlotUniqueId = blockatom.StringAtom;
+                        } else {
+                            this.phmi.sendError(kutsuja + functionname, "BlockAtom atom type was different than parameter type! Paramtype:" + retVal + " BlockAtomType:" + blockatom.AtomType, -1397, 4, 4);
+                            return -42;
+                        }
+                        break;
+                    case OneSlot.SlotParams.SlotAreap:
+                        retVal = 1;
+                        if (blockatom.TestIfSameAtomType(kutsuja + functionname, retVal) == 1) {
+                            oneslot.SlotAreap = blockatom.IntAtom;
+                        } else {
+                            this.phmi.sendError(kutsuja + functionname, "BlockAtom atom type was different than parameter type! Paramtype:" + retVal + " BlockAtomType:" + blockatom.AtomType, -1398, 4, 4);
+                            return -43;
+                        }
+                        break;
+                    case OneSlot.SlotParams.OrderIdNum:
+                        retVal = 2;
+                        if (blockatom.TestIfSameAtomType(kutsuja + functionname, retVal) == 1) {
+                            oneslot.OrderIdNum = blockatom.LongAtom;
+                        } else {
+                            this.phmi.sendError(kutsuja + functionname, "BlockAtom atom type was different than parameter type! Paramtype:" + retVal + " BlockAtomType:" + blockatom.AtomType, -1399, 4, 4);
+                            return -44;
+                        }
+                        break;
+                    case OneSlot.SlotParams.MarkerCounter:
+                        retVal = 2;
+                        if (blockatom.TestIfSameAtomType(kutsuja + functionname, retVal) == 1) {
+                            oneslot.MarkerCounter = blockatom.LongAtom;
+                        } else {
+                            this.phmi.sendError(kutsuja + functionname, "BlockAtom atom type was different than parameter type! Paramtype:" + retVal + " BlockAtomType:" + blockatom.AtomType, -1400, 4, 4);
+                            return -45;
+                        }
+                        break;
+                    case OneSlot.SlotParams.MarkerCounterAtCreation:
+                        retVal = 2;
+                        if (blockatom.TestIfSameAtomType(kutsuja + functionname, retVal) == 1) {
+                            oneslot.MarkerCounterAtCreation = blockatom.LongAtom;
+                        } else {
+                            this.phmi.sendError(kutsuja + functionname, "BlockAtom atom type was different than parameter type! Paramtype:" + retVal + " BlockAtomType:" + blockatom.AtomType, -1401, 4, 4);
+                            return -46;
+                        }
+                        break;
+                    case OneSlot.SlotParams.OrderIndex:
+                        retVal = 2;
+                        if (blockatom.TestIfSameAtomType(kutsuja + functionname, retVal) == 1) {
+                            oneslot.OrderIndex = blockatom.LongAtom;
+                        } else {
+                            this.phmi.sendError(kutsuja + functionname, "BlockAtom atom type was different than parameter type! Paramtype:" + retVal + " BlockAtomType:" + blockatom.AtomType, -1402, 4, 4);
+                            return -47;
+                        }
+                        break;
+                    case OneSlot.SlotParams.SlotStatus:
+                        retVal = 1;
+                        if (blockatom.TestIfSameAtomType(kutsuja + functionname, retVal) == 1) {
+                            oneslot.SlotStatus = blockatom.IntAtom;
+                        } else {
+                            this.phmi.sendError(kutsuja + functionname, "BlockAtom atom type was different than parameter type! Paramtype:" + retVal + " BlockAtomType:" + blockatom.AtomType, -1403, 4, 4);
+                            return -48;
+                        }
+                        break;
+                    case OneSlot.SlotParams.UnderOperation:
+                        retVal = 1;
+                        if (blockatom.TestIfSameAtomType(kutsuja + functionname, retVal) == 1) {
+                            oneslot.UnderOperation = blockatom.IntAtom;
+                        } else {
+                            this.phmi.sendError(kutsuja + functionname, "BlockAtom atom type was different than parameter type! Paramtype:" + retVal + " BlockAtomType:" + blockatom.AtomType, -1404, 4, 4);
+                            return -49;
+                        }
+                        break;
+                    case OneSlot.SlotParams.SoldBought:
+                        retVal = 1;
+                        if (blockatom.TestIfSameAtomType(kutsuja + functionname, retVal) == 1) {
+                            oneslot.SoldBought = blockatom.IntAtom;
+                        } else {
+                            this.phmi.sendError(kutsuja + functionname, "BlockAtom atom type was different than parameter type! Paramtype:" + retVal + " BlockAtomType:" + blockatom.AtomType, -1405, 4, 4);
+                            return -50;
+                        }
+                        break;
+                    case OneSlot.SlotParams.IsCancelling:
+                        retVal = 5;
+                        if (blockatom.TestIfSameAtomType(kutsuja + functionname, retVal) == 1) {
+                            oneslot.IsCancelling = blockatom.BoolAtom;
+                        } else {
+                            this.phmi.sendError(kutsuja + functionname, "BlockAtom atom type was different than parameter type! Paramtype:" + retVal + " BlockAtomType:" + blockatom.AtomType, -1406, 4, 4);
+                            return -51;
+                        }
+                        break;
+                    case OneSlot.SlotParams.SlotSize:
+                        retVal = 3;
+                        if (blockatom.TestIfSameAtomType(kutsuja + functionname, retVal) == 1) {
+                            oneslot.SlotSize = blockatom.DecAtom;
+                        } else {
+                            this.phmi.sendError(kutsuja + functionname, "BlockAtom atom type was different than parameter type! Paramtype:" + retVal + " BlockAtomType:" + blockatom.AtomType, -1407, 4, 4);
+                            return -52;
+                        }
+                        break;
+                    case OneSlot.SlotParams.AltRoute:
+                        retVal = 1;
+                        if (blockatom.TestIfSameAtomType(kutsuja + functionname, retVal) == 1) {
+                            oneslot.AltRoute = blockatom.IntAtom;
+                        } else {
+                            this.phmi.sendError(kutsuja + functionname, "BlockAtom atom type was different than parameter type! Paramtype:" + retVal + " BlockAtomType:" + blockatom.AtomType, -1408, 4, 4);
+                            return -53;
+                        }
+                        break;
+                    case OneSlot.SlotParams.FirstTriggerValue:
+                        retVal = 3;
+                        if (blockatom.TestIfSameAtomType(kutsuja + functionname, retVal) == 1) {
+                            oneslot.FirstTriggerValue = blockatom.DecAtom;
+                        } else {
+                            this.phmi.sendError(kutsuja + functionname, "BlockAtom atom type was different than parameter type! Paramtype:" + retVal + " BlockAtomType:" + blockatom.AtomType, -1409, 4, 4);
+                            return -54;
+                        }
+                        break;
+                    case OneSlot.SlotParams.UpperTriggerSellPoint:
+                        retVal = 3;
+                        if (blockatom.TestIfSameAtomType(kutsuja + functionname, retVal) == 1) {
+                            oneslot.UpperTriggerSellPoint = blockatom.DecAtom;
+                        } else {
+                            this.phmi.sendError(kutsuja + functionname, "BlockAtom atom type was different than parameter type! Paramtype:" + retVal + " BlockAtomType:" + blockatom.AtomType, -1410, 4, 4);
+                            return -55;
+                        }
+                        break;
+                    case OneSlot.SlotParams.UpperTriggerSafetyLimit:
+                        retVal = 3;
+                        if (blockatom.TestIfSameAtomType(kutsuja + functionname, retVal) == 1) {
+                            oneslot.UpperTriggerSafetyLimit = blockatom.DecAtom;
+                        } else {
+                            this.phmi.sendError(kutsuja + functionname, "BlockAtom atom type was different than parameter type! Paramtype:" + retVal + " BlockAtomType:" + blockatom.AtomType, -1411, 4, 4);
+                            return -56;
+                        }
+                        break;
+                    case OneSlot.SlotParams.LowerTriggerSellPoint:
+                        retVal = 3;
+                        if (blockatom.TestIfSameAtomType(kutsuja + functionname, retVal) == 1) {
+                            oneslot.LowerTriggerSellPoint = blockatom.DecAtom;
+                        } else {
+                            this.phmi.sendError(kutsuja + functionname, "BlockAtom atom type was different than parameter type! Paramtype:" + retVal + " BlockAtomType:" + blockatom.AtomType, -1412, 4, 4);
+                            return -57;
+                        }
+                        break;
+                    case OneSlot.SlotParams.PremioTriggerSellPoint:
+                        retVal = 3;
+                        if (blockatom.TestIfSameAtomType(kutsuja + functionname, retVal) == 1) {
+                            oneslot.PremioTriggerSellPoint = blockatom.DecAtom;
+                        } else {
+                            this.phmi.sendError(kutsuja + functionname, "BlockAtom atom type was different than parameter type! Paramtype:" + retVal + " BlockAtomType:" + blockatom.AtomType, -1413, 4, 4);
+                            return -58;
+                        }
+                        break;
+                    case OneSlot.SlotParams.TriggerReserved:
+                        retVal = 1;
+                        if (blockatom.TestIfSameAtomType(kutsuja + functionname, retVal) == 1) {
+                            oneslot.TriggerReserved = blockatom.IntAtom;
+                        } else {
+                            this.phmi.sendError(kutsuja + functionname, "BlockAtom atom type was different than parameter type! Paramtype:" + retVal + " BlockAtomType:" + blockatom.AtomType, -1414, 4, 4);
+                            return -59;
+                        }
+                        break;
+                    case OneSlot.SlotParams.IsConditionalOrder:
+                        retVal = 5;
+                        if (blockatom.TestIfSameAtomType(kutsuja + functionname, retVal) == 1) {
+                            oneslot.IsConditionalOrder = blockatom.BoolAtom;
+                        } else {
+                            this.phmi.sendError(kutsuja + functionname, "BlockAtom atom type was different than parameter type! Paramtype:" + retVal + " BlockAtomType:" + blockatom.AtomType, -1415, 4, 4);
+                            return -60;
+                        }
+                        break;
+                    case OneSlot.SlotParams.SellerObjUniqueNum:
+                        retVal = 2;
+                        if (blockatom.TestIfSameAtomType(kutsuja + functionname, retVal) == 1) {
+                            oneslot.SellerObjUniqueNum = blockatom.LongAtom;
+                        } else {
+                            this.phmi.sendError(kutsuja + functionname, "BlockAtom atom type was different than parameter type! Paramtype:" + retVal + " BlockAtomType:" + blockatom.AtomType, -1416, 4, 4);
+                            return -61;
+                        }
+                        break;
+                    default:
+                        this.phmi.sendError(kutsuja + functionname, "Unsupported blockparamvaluetype", -1389, 4, 4);
+                        return -34;
+                    }
+
+            } catch (Exception ex) {
+                this.phmi.sendError(kutsuja + functionname, "Exception: " + ex.Message, -1390, 4, 4);
+                retVal = -35;
+            }
+
+            return retVal;
+        }
 
         /// <summary>
         /// Palauttaa enumeraationa (int) arvon annettuun parametriin perustuen.
